@@ -1,4 +1,4 @@
-package Homework.Part3HW.Part3;
+package Homework.Part3HW;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
