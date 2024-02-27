@@ -119,6 +119,22 @@ public class NumberGuesser4 {
         if (message.equalsIgnoreCase("quit")) {
             System.out.println("Tired of playing? No problem, see you next time.");
             processed = true;
+            else if (message.equalsIgnoreCase(anotherString:"hint"))
+            {
+                if (strikes < 2){
+                    return false;
+                }
+                int ma = number + 3;
+                int mi = number - 3;
+                if (mi < 0) {
+                    mi = 0
+                }
+                int max=10 + ((level - 1) * 5);
+                if (ma > max){
+                    ma = max;
+                }
+                String msg = String.format(format:"The number is between % and %", mi, ma)
+            }
         }
         // TODO add other conditions here
         return processed;
