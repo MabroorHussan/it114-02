@@ -15,7 +15,7 @@ import Project.common.Constants;
 public class Room implements AutoCloseable {
     protected static Server server;// used to refer to accessible server functions
     private String name;
-    private List<ServerThread> clients = new ArrayList<ServerThread>();
+    private List<ServerThread> clients = new ArrayList<>();//new ArrayList<ServerThread>(); testingmute
     private boolean isRunning = false;
     // Commands
     private final static String COMMAND_TRIGGER = "/";
@@ -115,6 +115,16 @@ public class Room implements AutoCloseable {
         if (!name.equalsIgnoreCase(Constants.LOBBY) && (clients == null || clients.size() == 0)) {
             close();
         }
+        if (!isRunning) {
+            return;
+        }
+        Iterator<ServerThread> iter = clients.iterator();
+        while (iter.hasNext()) {
+            ServerThread client = iter.next();
+            if (!client.isRunning()) {
+                handleDisconnect(iter, client);
+            }
+        }
     }
 
 
@@ -190,55 +200,111 @@ public class Room implements AutoCloseable {
         }
    
         return wasCommand;
-    }// UCID: mth39, Date: 04/17/24, Milestone 3
-
-
-    private void processMuteCommand(ServerThread sender, String targetUsername) {
-        // Check if the sender has the authority to mute
-        // For example, you may want to add a check like if (sender.isAdmin()) { ... }
+    }
+/*
+    private void processMuteCommand(ServerThread sender, String targetUsername) {  // UCID: mth39, Date: 04/29/24, Milestone 4
+        // Check if the sender and targetUsername are valid
         if (sender != null && targetUsername != null && !targetUsername.isEmpty()) {
-            // Find the target ServerThread
+            // Find the ServerThread representing the target user
             ServerThread targetClient = findClientByUsername(targetUsername);
-   
+
+            // If the target user is found
             if (targetClient != null) {
-                // Mute the target user
-                targetClient.mute(targetUsername);
-                sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "User '" + targetUsername + "' has been muted.");
-               
-            // mute message occurs here, as the muted user is informed about the mute.
-            targetClient.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have been muted by " + sender.getClientName()); // UCID: mth39, Date: 04/17/24, Milestone 3
+                // Mute the target user by adding the target user's username to the sender's mute list
+                sender.mute(targetUsername);
 
+                // Inform the sender that they have successfully muted the target user
+                sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have muted '" + targetUsername + "'.");
 
+                // Inform the target user that they have been muted by the sender
+                targetClient.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have been muted by " + sender.getClientName());
             } else {
-                // Target user not found
+                // If the target user is not found, inform the sendera
                 sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "User '" + targetUsername + "' not found.");
             }
         }
     }
-   
-    private void processUnmuteCommand(ServerThread sender, String targetUsername) {
-        // Check if the sender has the authority to unmute
-        // For example, you may want to add a check like if (sender.isAdmin()) { ... }
+
+    private void processUnmuteCommand(ServerThread sender, String targetUsername) {  // // UCID: mth39, Date: 04/29/24, Milestone 4
+        // Check if the sender and targetUsername are valid
         if (sender != null && targetUsername != null && !targetUsername.isEmpty()) {
-            // Find the target ServerThread
+            // Find the ServerThread representing the target user
             ServerThread targetClient = findClientByUsername(targetUsername);
-   
+
+            // If the target user is found
             if (targetClient != null) {
-                // Unmute the target user
-                targetClient.unmute(targetUsername);
-                sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "User '" + targetUsername + "' has been unmuted.");
-           
-            // unmute message occurs here, as the unmuted user is informed about the unmute.
-            targetClient.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have been unmuted by " + sender.getClientName()); // UCID: mth39, Date: 04/17/24, Milestone 3
+                // Unmute the target user by removing the target user's username from the sender's mute list
+                sender.unmute(targetUsername);
 
+                // Inform the sender that they have successfully unmuted the target user
+                sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have unmuted '" + targetUsername + "'.");
 
+                // Inform the target user that they have been unmuted by the sender
+                targetClient.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have been unmuted by " + sender.getClientName());
             } else {
-                // Target user not found
+                // If the target user is not found, inform the sender
                 sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "User '" + targetUsername + "' not found.");
             }
         }
     }
-   
+*/
+
+    private void processMuteCommand(ServerThread sender, String targetUsername) {  // UCID: mth39, Date: 04/29/24, Milestone 4
+        // Check if the sender and targetUsername are valid
+        if (sender != null && targetUsername != null && !targetUsername.isEmpty()) {
+            // Find the ServerThread representing the target user
+            ServerThread targetClient = findClientByUsername(targetUsername);
+
+            // If the target user is found
+            if (targetClient != null) {
+                // Check if the target user is currently muted
+                boolean wasMuted = targetClient.isMuted(sender.getClientName());
+
+                // Mute the target user by adding the sender's username to their mute list
+                targetClient.mute(sender.getClientName());
+
+                // Check if the mute status changed
+                if (!wasMuted) {
+                    // Inform the sender that they have successfully muted the target user
+                    sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have muted '" + targetUsername + "'.");
+                    // Inform the target user that they have been muted by the sender
+                    targetClient.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have been muted by " + sender.getClientName());
+                }
+            } else {
+                // If the target user is not found, inform the sender
+                sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "User '" + targetUsername + "' not found.");
+            }
+        }
+    }
+
+    private void processUnmuteCommand(ServerThread sender, String targetUsername) {  // UCID: mth39, Date: 04/29/24, Milestone 4
+        // Check if the sender and targetUsername are valid
+        if (sender != null && targetUsername != null && !targetUsername.isEmpty()) {
+            // Find the ServerThread representing the target user
+            ServerThread targetClient = findClientByUsername(targetUsername);
+
+            // If the target user is found
+            if (targetClient != null) {
+                // Check if the target user is currently muted
+                boolean wasMuted = targetClient.isMuted(sender.getClientName());
+
+                // Unmute the target user by removing the sender's username from their mute list
+                targetClient.unmute(sender.getClientName());
+
+                // Check if the mute status changed
+                if (wasMuted) {
+                    // Inform the sender that they have successfully unmuted the target user
+                    sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have unmuted '" + targetUsername + "'.");
+                    // Inform the target user that they have been unmuted by the sender
+                    targetClient.sendMessage(Constants.DEFAULT_CLIENT_ID, "You have been unmuted by " + sender.getClientName());
+                }
+            } else {
+                // If the target user is not found, inform the sender
+                sender.sendMessage(Constants.DEFAULT_CLIENT_ID, "User '" + targetUsername + "' not found.");
+            }
+        }
+    }
+
     private void sendWhisperMessage(ServerThread sender, String targetUsername, String message) { // UCID: mth39, Date: 04/17/24, Milestone 3
         // Find the target ServerThread
         ServerThread targetClient = findClientByUsername(targetUsername);
@@ -475,7 +541,7 @@ public class Room implements AutoCloseable {
             ServerThread client = iter.next();
    
             // Check if the sender is muted by the client in the current iteration
-            if (client.isMuted(sender.getClientName())) {
+            if (sender != null && client.isMuted(sender.getClientName())) {//if (client.isMuted(sender.getClientName())) {      // testingmute
                 // Skip broadcasting to muted clients
                 continue;
             }
@@ -487,7 +553,7 @@ public class Room implements AutoCloseable {
         }
    
         // Broadcast the message to the muted sender as well
-        if (sender != null && sender.isMuted(sender.getClientName())) {
+        if (sender != null && sender.isMuted(sender.getClientName()) && !processCommands(message, sender)) {//if (sender != null && sender.isMuted(sender.getClientName())) {    //testingmute2
             sender.sendMessage(from, message);
         }
     }

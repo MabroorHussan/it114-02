@@ -163,23 +163,23 @@ public class ServerThread extends Thread {
         return send(p);
     }
 
-    public boolean isMuted(String username) { // UCID: mth39, Date: 04/17/24, Milestone 3
+    public boolean isMuted(String username) {
         return muteList.contains(username);
     }
 
-    public void mute(String username) {
+    public void mute(String username) {  // UCID: mth39, Date: 04/29/24, Milestone 4
         if (!muteList.contains(username)) {
             muteList.add(username);
             saveMuteListToFile();
         }
     }
 
-    public void unmute(String username) {
+    public void unmute(String username) {  // UCID: mth39, Date: 04/29/24, Milestone 4
         muteList.remove(username);
         saveMuteListToFile();
     }
 
-        private void loadMuteListFromFile() { // UCID: mth39, Date: 04/17/24, Milestone 4
+        private void loadMuteListFromFile() { // UCID: mth39, Date: 04/29/24, Milestone 4
         try {
             String fileName = clientName + MUTE_LIST_FILE_SUFFIX;
             File file = new File(fileName);
@@ -194,9 +194,9 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             logger.severe("Error loading mute list from file: " + e.getMessage());
         }
-    } // UCID: mth39, Date: 04/17/24, Milestone 4
+    } // UCID: mth39, Date: 04/24/24, Milestone 4
 
-    private void saveMuteListToFile() { // UCID: mth39, Date: 04/17/24, Milestone 4
+    private void saveMuteListToFile() { // UCID: mth39, Date: 04/29/24, Milestone 4
         try {
             String fileName = clientName + MUTE_LIST_FILE_SUFFIX;
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
@@ -208,7 +208,7 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             logger.severe("Error saving mute list to file: " + e.getMessage());
         }
-    } // UCID: mth39, Date: 04/17/24, Milestone 4
+    } // UCID: mth39, Date: 04/24/24, Milestone 4
 
     private boolean send(Payload payload) {
         try {

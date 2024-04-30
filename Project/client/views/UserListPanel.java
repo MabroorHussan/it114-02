@@ -1,6 +1,12 @@
 package Project.client.views;
 
+import java.awt.Color;
 import java.awt.BorderLayout;
+import java.awt.font.TextAttribute;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.util.HashMap;
+import java.util.Map;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ContainerEvent;
@@ -20,6 +26,8 @@ import Project.client.ICardControls;
 public class UserListPanel extends JPanel {
     JPanel userListArea;
     private static Logger logger = Logger.getLogger(UserListPanel.class.getName());
+    private Map<Long, JEditorPane> userMap;
+    private long lastMessageSenderId;
 
     public UserListPanel(ICardControls controls) {
         super(new BorderLayout(10, 10));
@@ -37,6 +45,8 @@ public class UserListPanel extends JPanel {
         // no need to add content specifically because scroll wraps it
 
         userListArea = content;
+        userMap = new HashMap<>();
+        lastMessageSenderId = -1;
 
         wrapper.add(scroll);
         this.add(wrapper, BorderLayout.CENTER);
@@ -80,6 +90,7 @@ public class UserListPanel extends JPanel {
         ClientUtils.clearBackground(textContainer);
         // add to container
         content.add(textContainer);
+        userMap.put(clientId, textContainer); // test
     }
 
     protected void removeUserListItem(long clientId) {
@@ -99,4 +110,35 @@ public class UserListPanel extends JPanel {
             userListArea.remove(c);
         }
     }
+
+    protected void updateUserMuteStatus(long clientId, boolean isMuted) {  //  UCID: mth39, Date: 04/30/24, Milestone 4
+        JEditorPane textContainer = userMap.get(clientId);
+        if (textContainer != null) {
+            Font font = textContainer.getFont();
+            Map<TextAttribute, Object> attributes = new HashMap<>(font.getAttributes());
+            attributes.put(TextAttribute.FOREGROUND, isMuted ? Color.GRAY : Color.BLACK);
+            textContainer.setFont(font.deriveFont(attributes));
+        }
+    }
+
+    protected void highlightLastMessageSender(long clientId) {  //  UCID: mth39, Date: 04/30/24, Milestone 4
+        if (lastMessageSenderId != -1) {
+            JEditorPane lastMessageSender = userMap.get(lastMessageSenderId);
+            if (lastMessageSender != null) {
+                Font font = lastMessageSender.getFont();
+                Map<TextAttribute, Object> attributes = new HashMap<>(font.getAttributes());
+                attributes.put(TextAttribute.FOREGROUND, Color.BLACK);
+                lastMessageSender.setFont(font.deriveFont(attributes));
+            }
+        }
+        JEditorPane currentMessageSender = userMap.get(clientId);
+        if (currentMessageSender != null) {
+            Font font = currentMessageSender.getFont();
+            Map<TextAttribute, Object> attributes = new HashMap<>(font.getAttributes());
+            attributes.put(TextAttribute.FOREGROUND, Color.BLUE);
+            currentMessageSender.setFont(font.deriveFont(attributes));
+            lastMessageSenderId = clientId;
+        }
+    }
 }
+
