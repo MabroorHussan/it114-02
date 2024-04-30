@@ -31,6 +31,11 @@ import Project.client.Client;
 import Project.client.ClientUtils;
 import Project.client.ICardControls;
 
+import java.io.IOException;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 public class ChatPanel extends JPanel {
     private static Logger logger = Logger.getLogger(ChatPanel.class.getName());
     private JPanel chatArea = null;
@@ -166,27 +171,38 @@ public class ChatPanel extends JPanel {
         vertical.setValue(vertical.getMaximum());
     }
 
-    private void exportChatHistory() throws IOException {
-        StringBuilder chatHistory = new StringBuilder();
+    private void exportChatHistory() throws IOException {  // UCID: mth39, Date: 04/29/24, Milestone 4
+            StringBuilder chatHistory = new StringBuilder();
 
-        for (Component component : chatArea.getComponents()) {
-            if (component instanceof JEditorPane) {
-                JEditorPane textContainer = (JEditorPane) component;
-                chatHistory.append(textContainer.getText()).append("\n");
+            // Iterate through chat messages and append them to StringBuilder
+            for (Component component : chatArea.getComponents()) {
+                if (component instanceof JEditorPane) {
+                    JEditorPane textContainer = (JEditorPane) component;
+                    chatHistory.append(textContainer.getText()).append("\n");
+                }
+            }
+
+            // Use JFileChooser to prompt the user for file location and name
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save Chat History");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Text files", "txt"));
+
+            int userSelection = fileChooser.showSaveDialog(this);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+
+                // Add timestamp to filename
+                String fileName = fileToSave.getAbsolutePath();
+                if (!fileName.toLowerCase().endsWith(".txt")) {
+                    fileName += ".txt";
+                }
+
+                // Write chat history to the selected file
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+                    writer.write(chatHistory.toString());
+                }
+
+                System.out.println("Chat history exported to: " + fileName);
             }
         }
-
-        String fileName = "ChatHistory_" + System.currentTimeMillis() + ".txt";
-        File outputFile = new File(System.getProperty("user.home"), fileName);
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            writer.write(chatHistory.toString());
-        }
-
-        System.out.println("Chat history exported to: " + outputFile.getAbsolutePath());
     }
-}
-
-
-
-
